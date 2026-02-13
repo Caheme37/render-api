@@ -1,21 +1,24 @@
-# 1. Pegamos a imagem do Node.js
+# 1. Usamos a imagem estável do Node.js
 FROM node:20-bookworm
 
-# 2. Instalamos o ImageMagick e criamos o link simbólico para o comando 'magick'
+# 2. Instalamos o ImageMagick e criamos o atalho para o comando 'magick'
+# Isso evita o erro 'ENOENT' porque o Linux passará a reconhecer o nome 'magick'
 RUN apt-get update && apt-get install -y imagemagick && \
     ln -s /usr/bin/convert /usr/bin/magick && \
     rm -rf /var/lib/apt/lists/*
 
-# 3. Configuramos a pasta do app
+# 3. Definimos a pasta de trabalho
 WORKDIR /app
 
-# 4. Copiamos e instalamos as dependências
+# 4. Copiamos os arquivos de configuração primeiro (otimiza o cache)
 COPY package.json ./
+
+# 5. Instalamos as bibliotecas (agora sem erro de vírgula!)
 RUN npm install
 
-# 5. Copiamos o resto do código
+# 6. Copiamos o restante do código (incluindo o seu novo server.js)
 COPY . .
 
-# 6. Abrimos a porta e ligamos o servidor
+# 7. Expomos a porta e iniciamos o servidor
 EXPOSE 3000
 CMD ["node", "server.js"]
